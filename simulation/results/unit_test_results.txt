@@ -1,0 +1,31 @@
+[PASS] message size REG_1 == 66 bytes
+[PASS] message size REG_2 == 98 bytes
+[PASS] message size REG_3 == 33 bytes
+[PASS] message size AUTH_TRIGGER == 1 byte
+[PASS] message size AUTH_M1 == 134 bytes
+[PASS] message size AUTH_M2 == 66 bytes
+[PASS] total session overhead == 398 bytes
+[PASS] honest registration succeeds
+[PASS] honest registration derives matching SK_ST on both sides
+[PASS] honest AUTH_M1 accepted by device
+[PASS] honest AUTH_M2 accepted by server (session established)
+[PASS] server ist and device istT are in sync after honest auth
+[PASS] AUTH_M1 with modified CT is rejected
+[PASS] AUTH_M1 with modified c is rejected
+[PASS] AUTH_M1 with modified YS is rejected
+[PASS] setup: honest AUTH_M1 accepted before tau-tamper test
+[PASS] AUTH_M2 with modified tau is rejected (server keeps waiting)
+[PASS] server accepts the honest AUTH_M2 after rejecting the tampered one
+[PASS] setup: first AUTH_M1 accepted for replay test
+[PASS] replayed AUTH_M1 (same ist) is rejected as a replay
+[PASS] setup: attempt 1 AUTH_M1 accepted by device (before drop)
+[PASS] device rotated its current key after attempt 1
+[PASS] device kept the registration key as its previous (fallback) key
+[PASS] server SK unchanged after the dropped AUTH_M2
+[PASS] server ist advanced to 2 on retry
+[PASS] retry AUTH_M1 accepted by device
+[PASS] retry AUTH_M1 verified via the fallback (previous) key
+[PASS] server accepts AUTH_M2 on the retry -> session re-synchronised
+[PASS] server and device counters back in sync after fallback recovery
+
+==== 29 passed, 0 failed ====

@@ -1,0 +1,118 @@
+(* =====================================================================
+   ECC-HMAC revised protocol - complete ProVerif verification
+   Single file, single run: secrecy, mutual authentication, forward secrecy.
+
+   Part A : normal operation. The chaining key SKa is SECRET.
+            Active Dolev-Yao attacker on the public channel c.
+   Part B : forward secrecy. The previous chaining key SKb is PUBLIC and
+            the counter ist is a public constant, modelling full
+            compromise of the previous session; the attacker eavesdrops
+            the exchange (session pairing over the private channel cp).
+   ===================================================================== *)
+
+free c: channel.
+free cp: channel [private].
+
+type exponent. type G. type key.
+
+const P: G [data].
+fun mult(exponent, G): G.
+equation forall x: exponent, y: exponent;
+  mult(x, mult(y, P)) = mult(y, mult(x, P)).
+
+fun sign(bitstring, exponent): bitstring.
+reduc forall m: bitstring, s: exponent;
+  verify(sign(m, s), m, mult(s, P)) = true.
+
+fun mac(key, bitstring): bitstring.
+fun H1(key, G, bitstring, G, G): key.
+fun H2(key, G, bitstring, G, G): key.
+fun H3(key, G, bitstring, G, G): key.
+fun senc(bitstring, key): bitstring.
+reduc forall m: bitstring, k: key; sdec(senc(m, k), k) = m.
+
+(* ---- Part A : secret chaining key ---- *)
+free SKa: key [private].
+free secretSess: bitstring [private].
+
+(* ---- Part B : COMPROMISED chaining key, predictable counter ---- *)
+free SKb: key.
+const ist: bitstring.
+free secretChain, secretFS: bitstring [private].
+
+(* ---- events ---- *)
+event sendS(bitstring, G, bitstring).
+event acceptT(bitstring, G, bitstring).
+event sendT(bitstring, G, G, key).
+event acceptS(bitstring, G, G, key).
+
+(* ---- queries ---- *)
+query attacker(secretSess).
+query attacker(secretChain).
+query attacker(secretFS).
+
+query i: bitstring, R: G, C: bitstring;
+  inj-event(acceptT(i,R,C)) ==> inj-event(sendS(i,R,C)).
+query i: bitstring, R: G, C: bitstring;
+  event(acceptT(i,R,C)) ==> event(sendS(i,R,C)).
+query i: bitstring, R: G, Rt: G, k: key;
+  inj-event(acceptS(i,R,Rt,k)) ==> inj-event(sendT(i,R,Rt,k)).
+query i: bitstring, R: G, Rt: G, k: key;
+  event(acceptS(i,R,Rt,k)) ==> event(sendT(i,R,Rt,k)).
+
+(* ---- Part A : server ---- *)
+let serverA(sS: exponent) =
+  new istA: bitstring;
+  new rS: exponent; let RS = mult(rS, P) in
+  let CT = mac(SKa, (istA, RS)) in
+  let sg = sign((istA, RS, CT), sS) in
+  event sendS(istA, RS, CT);
+  out(c, (istA, RS, CT, sg));
+  in(c, (RT: G, tau: bitstring));
+  let Kdh = mult(rS, RT) in
+  let k2 = H2(SKa, Kdh, istA, RS, RT) in
+  if tau = mac(k2, (istA, RS, RT)) then
+  event acceptS(istA, RS, RT, k2);
+  out(c, senc(secretSess, H3(SKa, Kdh, istA, RS, RT))).
+
+(* ---- Part A : IoT device ---- *)
+let deviceA(PKSa: G) =
+  in(c, (i: bitstring, RSx: G, CT: bitstring, sg: bitstring));
+  let ok = verify(sg, (i, RSx, CT), PKSa) in
+  if CT = mac(SKa, (i, RSx)) then
+  event acceptT(i, RSx, CT);
+  new rT: exponent; let RT = mult(rT, P) in
+  let Kdh = mult(rT, RSx) in
+  let k2 = H2(SKa, Kdh, i, RSx, RT) in
+  event sendT(i, RSx, RT, k2);
+  out(c, (RT, mac(k2, (i, RSx, RT)))).
+
+(* ---- Part B : server, previous key compromised ---- *)
+let serverB(sSb: exponent) =
+  new rS: exponent; let RS = mult(rS, P) in
+  let CT = mac(SKb, (ist, RS)) in
+  let sg = sign((ist, RS, CT), sSb) in
+  out(c, (ist, RS, CT, sg)); out(cp, (ist, RS, CT, sg));
+  in(cp, (RT: G, tau: bitstring));
+  let Kdh = mult(rS, RT) in
+  if tau = mac(H2(SKb, Kdh, ist, RS, RT), (ist, RS, RT)) then
+  out(c, senc(secretChain, H1(SKb, Kdh, ist, RS, RT)));
+  out(c, senc(secretFS,    H3(SKb, Kdh, ist, RS, RT))).
+
+(* ---- Part B : IoT device ---- *)
+let deviceB(PKSb: G) =
+  in(cp, (i: bitstring, RSx: G, CT: bitstring, sg: bitstring));
+  let ok = verify(sg, (i, RSx, CT), PKSb) in
+  if CT = mac(SKb, (i, RSx)) then
+  new rT: exponent; let RT = mult(rT, P) in
+  let Kdh = mult(rT, RSx) in
+  let tau = mac(H2(SKb, Kdh, i, RSx, RT), (i, RSx, RT)) in
+  out(c, (RT, tau)); out(cp, (RT, tau)).
+
+process
+  new sSa: exponent; let PKSa = mult(sSa, P) in out(c, PKSa);
+  new sSb: exponent; let PKSb = mult(sSb, P) in out(c, PKSb);
+  (   (! serverA(sSa))
+    | (! deviceA(PKSa))
+    | serverB(sSb)
+    | deviceB(PKSb) )

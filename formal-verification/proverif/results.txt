@@ -1,0 +1,312 @@
+Linear part:
+mult(x,mult(y,P)) = mult(y,mult(x,P))
+Completing equations...
+Completed equations:
+mult(x,mult(y,P)) = mult(y,mult(x,P))
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new sSa: exponent;
+{2}let PKSa: G = mult(sSa,P) in
+{3}out(c, PKSa);
+{4}new sSb: exponent;
+{5}let PKSb: G = mult(sSb,P) in
+{6}out(c, PKSb);
+(
+    {7}!
+    {8}let sS: exponent = sSa in
+    {9}new istA: bitstring;
+    {10}new rS: exponent;
+    {11}let RS: G = mult(rS,P) in
+    {12}let CT: bitstring = mac(SKa,(istA,RS)) in
+    {13}let sg: bitstring = sign((istA,RS,CT),sS) in
+    {14}event sendS(istA,RS,CT);
+    {15}out(c, (istA,RS,CT,sg));
+    {16}in(c, (RT: G,tau: bitstring));
+    {17}let Kdh: G = mult(rS,RT) in
+    {18}let k2: key = H2(SKa,Kdh,istA,RS,RT) in
+    {19}if (tau = mac(k2,(istA,RS,RT))) then
+    {20}event acceptS(istA,RS,RT,k2);
+    {21}out(c, senc(secretSess,H3(SKa,Kdh,istA,RS,RT)))
+) | (
+    {22}!
+    {23}in(c, (i: bitstring,RSx: G,CT_1: bitstring,sg_1: bitstring));
+    {24}let ok: bool = verify(sg_1,(i,RSx,CT_1),PKSa) in
+    {25}if (CT_1 = mac(SKa,(i,RSx))) then
+    {26}event acceptT(i,RSx,CT_1);
+    {27}new rT: exponent;
+    {28}let RT_1: G = mult(rT,P) in
+    {29}let Kdh_1: G = mult(rT,RSx) in
+    {30}let k2_1: key = H2(SKa,Kdh_1,i,RSx,RT_1) in
+    {31}event sendT(i,RSx,RT_1,k2_1);
+    {32}out(c, (RT_1,mac(k2_1,(i,RSx,RT_1))))
+) | (
+    {33}let sSb_1: exponent = sSb in
+    {34}new rS_1: exponent;
+    {35}let RS_1: G = mult(rS_1,P) in
+    {36}let CT_2: bitstring = mac(SKb,(ist,RS_1)) in
+    {37}let sg_2: bitstring = sign((ist,RS_1,CT_2),sSb_1) in
+    {38}out(c, (ist,RS_1,CT_2,sg_2));
+    {39}out(cp, (ist,RS_1,CT_2,sg_2));
+    {40}in(cp, (RT_2: G,tau_1: bitstring));
+    {41}let Kdh_2: G = mult(rS_1,RT_2) in
+    {42}if (tau_1 = mac(H2(SKb,Kdh_2,ist,RS_1,RT_2),(ist,RS_1,RT_2))) then
+    {43}out(c, senc(secretChain,H1(SKb,Kdh_2,ist,RS_1,RT_2)));
+    {44}out(c, senc(secretFS,H3(SKb,Kdh_2,ist,RS_1,RT_2)))
+) | (
+    {45}in(cp, (i_1: bitstring,RSx_1: G,CT_3: bitstring,sg_3: bitstring));
+    {46}let ok_1: bool = verify(sg_3,(i_1,RSx_1,CT_3),PKSb) in
+    {47}if (CT_3 = mac(SKb,(i_1,RSx_1))) then
+    {48}new rT_1: exponent;
+    {49}let RT_3: G = mult(rT_1,P) in
+    {50}let Kdh_3: G = mult(rT_1,RSx_1) in
+    {51}let tau_2: bitstring = mac(H2(SKb,Kdh_3,i_1,RSx_1,RT_3),(i_1,RSx_1,RT_3)) in
+    {52}out(c, (RT_3,tau_2));
+    {53}out(cp, (RT_3,tau_2))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sSa: exponent;
+{2}let PKSa: G = mult(sSa,P) in
+{3}out(c, PKSa);
+{4}new sSb: exponent;
+{5}let PKSb: G = mult(sSb,P) in
+{6}out(c, PKSb);
+(
+    {7}!
+    {9}new istA: bitstring;
+    {10}new rS: exponent;
+    {11}let RS: G = mult(rS,P) in
+    {12}let CT: bitstring = mac(SKa,(istA,RS)) in
+    {14}event sendS(istA,RS,CT);
+    {8}let sS: exponent = sSa in
+    {13}let sg: bitstring = sign((istA,RS,CT),sS) in
+    {15}out(c, (istA,RS,CT,sg));
+    {16}in(c, (RT: G,tau: bitstring));
+    {17}let Kdh: G = mult(rS,RT) in
+    {18}let k2: key = H2(SKa,Kdh,istA,RS,RT) in
+    {19}if (tau = mac(k2,(istA,RS,RT))) then
+    {20}event acceptS(istA,RS,RT,k2);
+    {21}out(c, senc(secretSess,H3(SKa,Kdh,istA,RS,RT)))
+) | (
+    {22}!
+    {23}in(c, (i: bitstring,RSx: G,CT_1: bitstring,sg_1: bitstring));
+    {24}let ok: bool = verify(sg_1,(i,RSx,CT_1),PKSa) in
+    {25}if (CT_1 = mac(SKa,(i,RSx))) then
+    {26}event acceptT(i,RSx,CT_1);
+    {27}new rT: exponent;
+    {29}let Kdh_1: G = mult(rT,RSx) in
+    {28}let RT_1: G = mult(rT,P) in
+    {30}let k2_1: key = H2(SKa,Kdh_1,i,RSx,RT_1) in
+    {31}event sendT(i,RSx,RT_1,k2_1);
+    {32}out(c, (RT_1,mac(k2_1,(i,RSx,RT_1))))
+) | (
+    {34}new rS_1: exponent;
+    {35}let RS_1: G = mult(rS_1,P) in
+    {36}let CT_2: bitstring = mac(SKb,(ist,RS_1)) in
+    {33}let sSb_1: exponent = sSb in
+    {37}let sg_2: bitstring = sign((ist,RS_1,CT_2),sSb_1) in
+    {38}out(c, (ist,RS_1,CT_2,sg_2));
+    {39}out(cp, (ist,RS_1,CT_2,sg_2));
+    {40}in(cp, (RT_2: G,tau_1: bitstring));
+    {41}let Kdh_2: G = mult(rS_1,RT_2) in
+    {42}if (tau_1 = mac(H2(SKb,Kdh_2,ist,RS_1,RT_2),(ist,RS_1,RT_2))) then
+    {43}out(c, senc(secretChain,H1(SKb,Kdh_2,ist,RS_1,RT_2)));
+    {44}out(c, senc(secretFS,H3(SKb,Kdh_2,ist,RS_1,RT_2)))
+) | (
+    {45}in(cp, (i_1: bitstring,RSx_1: G,CT_3: bitstring,sg_3: bitstring));
+    {46}let ok_1: bool = verify(sg_3,(i_1,RSx_1,CT_3),PKSb) in
+    {47}if (CT_3 = mac(SKb,(i_1,RSx_1))) then
+    {48}new rT_1: exponent;
+    {50}let Kdh_3: G = mult(rT_1,RSx_1) in
+    {49}let RT_3: G = mult(rT_1,P) in
+    {51}let tau_2: bitstring = mac(H2(SKb,Kdh_3,i_1,RSx_1,RT_3),(i_1,RSx_1,RT_3)) in
+    {52}out(c, (RT_3,tau_2));
+    {53}out(cp, (RT_3,tau_2))
+)
+
+-- Query not attacker(secretSess[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 149 rules (49 with conclusion selected). Queue: 21 rules.
+Starting query not attacker(secretSess[])
+RESULT not attacker(secretSess[]) is true.
+-- Query not attacker(secretChain[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 149 rules (49 with conclusion selected). Queue: 21 rules.
+Starting query not attacker(secretChain[])
+RESULT not attacker(secretChain[]) is true.
+-- Query not attacker(secretFS[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 149 rules (49 with conclusion selected). Queue: 21 rules.
+Starting query not attacker(secretFS[])
+RESULT not attacker(secretFS[]) is true.
+-- Query inj-event(acceptT(i_2,R,C)) ==> inj-event(sendS(i_2,R,C)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 150 rules (50 with conclusion selected). Queue: 24 rules.
+Starting query inj-event(acceptT(i_2,R,C)) ==> inj-event(sendS(i_2,R,C))
+goal reachable: @sid ≠ @sid_1 && b-inj-event(sendS(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ14_1) -> inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_1) && inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_2)
+Abbreviations:
+istA_1 = istA[!1 = @sid_2]
+rS_2 = rS[!1 = @sid_2]
+@occ26_1 = @occ26[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid]
+@occ26_2 = @occ26[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid_1]
+@occ14_1 = @occ14[!1 = @sid_2]
+
+Derivation:
+Abbreviations:
+istA_1 = istA[!1 = @sid]
+rS_2 = rS[!1 = @sid]
+@occ26_1 = @occ26[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid_1]
+@occ26_2 = @occ26[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid_2]
+@occ14_1 = @occ14[!1 = @sid]
+
+1. The event sendS(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))) (with occurrence name @occ14_1) may be executed at {14}.
+So the message (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])) may be sent to the attacker at output {15}.
+attacker((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]))).
+
+2. By 1, the attacker may know (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])).
+Using the function 4-proj-4-tuple the attacker may obtain sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]).
+attacker(sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])).
+
+3. By 1, the attacker may know (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])).
+Using the function 3-proj-4-tuple the attacker may obtain mac(SKa[],(istA_1,mult(rS_2,P))).
+attacker(mac(SKa[],(istA_1,mult(rS_2,P)))).
+
+4. By 1, the attacker may know (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])).
+Using the function 2-proj-4-tuple the attacker may obtain mult(rS_2,P).
+attacker(mult(rS_2,P)).
+
+5. By 1, the attacker may know (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])).
+Using the function 1-proj-4-tuple the attacker may obtain istA_1.
+attacker(istA_1).
+
+6. By 5, the attacker may know istA_1.
+By 4, the attacker may know mult(rS_2,P).
+By 3, the attacker may know mac(SKa[],(istA_1,mult(rS_2,P))).
+By 2, the attacker may know sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]).
+Using the function 4-tuple the attacker may obtain (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])).
+attacker((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]))).
+
+7. The message (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])) that the attacker may have by 6 may be received at input {23}.
+So event acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))) may be executed at {26} in session @sid_2.
+inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_2).
+
+8. By 7, inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_2).
+The goal is reached, represented in the following fact:
+inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_2).
+
+9. The message (istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))),sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[])) that the attacker may have by 6 may be received at input {23}.
+So event acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))) may be executed at {26} in session @sid_1.
+inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_1).
+
+10. By 9, inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_1).
+The goal is reached, represented in the following fact:
+inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_1).
+
+11. By 10, inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_1).
+By 8, inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_2).
+We have @occ26_1 ≠ @occ26_2.
+The goals for injectivity are reached, combined in the following fact:
+inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_1) && inj-event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),@occ26_2).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new sSa: exponent creating sSa_1 at {1}
+
+out(c, ~M) with ~M = mult(sSa_1,P) at {3}
+
+new sSb: exponent creating sSb_2 at {4}
+
+out(c, ~M_1) with ~M_1 = mult(sSb_2,P) at {6}
+
+new rS_1: exponent creating rS_3 at {34}
+
+out(c, (~M_2,~M_3,~M_4,~M_5)) with ~M_2 = ist, ~M_3 = mult(rS_3,P), ~M_4 = mac(SKb,(ist,mult(rS_3,P))), ~M_5 = sign((ist,mult(rS_3,P),mac(SKb,(ist,mult(rS_3,P)))),sSb_2) at {38}
+
+new istA: bitstring creating istA_2 at {9} in copy a
+
+new rS: exponent creating rS_4 at {10} in copy a
+
+event sendS(istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))) at {14} in copy a
+
+out(c, (~M_6,~M_7,~M_8,~M_9)) with ~M_6 = istA_2, ~M_7 = mult(rS_4,P), ~M_8 = mac(SKa,(istA_2,mult(rS_4,P))), ~M_9 = sign((istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))),sSa_1) at {15} in copy a
+
+in(c, (~M_6,~M_7,~M_8,~M_9)) with ~M_6 = istA_2, ~M_7 = mult(rS_4,P), ~M_8 = mac(SKa,(istA_2,mult(rS_4,P))), ~M_9 = sign((istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))),sSa_1) at {23} in copy a_1
+
+event acceptT(istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))) at {26} in copy a_1 (goal)
+
+new rT: exponent creating rT_2 at {27} in copy a_1
+
+event sendT(istA_2,mult(rS_4,P),mult(rT_2,P),H2(SKa,mult(rT_2,mult(rS_4,P)),istA_2,mult(rS_4,P),mult(rT_2,P))) at {31} in copy a_1
+
+out(c, (~M_10,~M_11)) with ~M_10 = mult(rT_2,P), ~M_11 = mac(H2(SKa,mult(rT_2,mult(rS_4,P)),istA_2,mult(rS_4,P),mult(rT_2,P)),(istA_2,mult(rS_4,P),mult(rT_2,P))) at {32} in copy a_1
+
+in(c, (~M_6,~M_7,~M_8,~M_9)) with ~M_6 = istA_2, ~M_7 = mult(rS_4,P), ~M_8 = mac(SKa,(istA_2,mult(rS_4,P))), ~M_9 = sign((istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))),sSa_1) at {23} in copy a_2
+
+event acceptT(istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))) at {26} in copy a_2 (goal)
+
+The event acceptT(istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))) is executed at {26} in copy a_1.
+The event acceptT(istA_2,mult(rS_4,P),mac(SKa,(istA_2,mult(rS_4,P)))) is executed at {26} in copy a_2.
+A trace has been found.
+RESULT inj-event(acceptT(i_2,R,C)) ==> inj-event(sendS(i_2,R,C)) is false.
+RESULT (but event(acceptT(i_2,R,C)) ==> event(sendS(i_2,R,C)) is true.)
+-- Query event(acceptT(i_2,R,C)) ==> event(sendS(i_2,R,C)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 150 rules (50 with conclusion selected). Queue: 24 rules.
+Starting query event(acceptT(i_2,R,C)) ==> event(sendS(i_2,R,C))
+goal reachable: b-event(sendS(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P))))) -> event(acceptT(istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))))
+Abbreviations:
+istA_1 = istA[!1 = @sid]
+rS_2 = rS[!1 = @sid]
+RESULT event(acceptT(i_2,R,C)) ==> event(sendS(i_2,R,C)) is true.
+-- Query inj-event(acceptS(i_2,R,Rt,k)) ==> inj-event(sendT(i_2,R,Rt,k)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 145 rules (49 with conclusion selected). Queue: 47 rules.
+Starting query inj-event(acceptS(i_2,R,Rt,k)) ==> inj-event(sendT(i_2,R,Rt,k))
+goal reachable: b-inj-event(sendT(istA_1,mult(rS_2,P),mult(rT_2,P),H2(SKa[],mult(rS_2,mult(rT_2,P)),istA_1,mult(rS_2,P),mult(rT_2,P))),@occ31_1) -> inj-event(acceptS(istA_1,mult(rS_2,P),mult(rT_2,P),H2(SKa[],mult(rS_2,mult(rT_2,P)),istA_1,mult(rS_2,P),mult(rT_2,P))),@occ20_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+istA_1 = istA[!1 = @sid]
+rS_2 = rS[!1 = @sid]
+rT_2 = rT[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid_1]
+@occ20_1 = @occ20[tau = mac(H2(SKa[],mult(rS_2,mult(rT_2,P)),istA_1,mult(rS_2,P),mult(rT_2,P)),(istA_1,mult(rS_2,P),mult(rT_2,P))),RT = mult(rT_2,P),!1 = @sid]
+@occ31_1 = @occ31[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid_1]
+RESULT inj-event(acceptS(i_2,R,Rt,k)) ==> inj-event(sendT(i_2,R,Rt,k)) is true.
+-- Query event(acceptS(i_2,R,Rt,k)) ==> event(sendT(i_2,R,Rt,k)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 145 rules (49 with conclusion selected). Queue: 47 rules.
+Starting query event(acceptS(i_2,R,Rt,k)) ==> event(sendT(i_2,R,Rt,k))
+goal reachable: b-event(sendT(istA_1,mult(rS_2,P),mult(rT_2,P),H2(SKa[],mult(rS_2,mult(rT_2,P)),istA_1,mult(rS_2,P),mult(rT_2,P)))) -> event(acceptS(istA_1,mult(rS_2,P),mult(rT_2,P),H2(SKa[],mult(rS_2,mult(rT_2,P)),istA_1,mult(rS_2,P),mult(rT_2,P))))
+Abbreviations:
+istA_1 = istA[!1 = @sid]
+rS_2 = rS[!1 = @sid]
+rT_2 = rT[sg_1 = sign((istA_1,mult(rS_2,P),mac(SKa[],(istA_1,mult(rS_2,P)))),sSa[]),CT_1 = mac(SKa[],(istA_1,mult(rS_2,P))),RSx = mult(rS_2,P),i = istA_1,!1 = @sid_1]
+RESULT event(acceptS(i_2,R,Rt,k)) ==> event(sendT(i_2,R,Rt,k)) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(secretSess[]) is true.
+
+Query not attacker(secretChain[]) is true.
+
+Query not attacker(secretFS[]) is true.
+
+Query inj-event(acceptT(i_2,R,C)) ==> inj-event(sendS(i_2,R,C)) is false.
+
+Query event(acceptT(i_2,R,C)) ==> event(sendS(i_2,R,C)) is true.
+
+Query inj-event(acceptS(i_2,R,Rt,k)) ==> inj-event(sendT(i_2,R,Rt,k)) is true.
+
+Query event(acceptS(i_2,R,Rt,k)) ==> event(sendT(i_2,R,Rt,k)) is true.
+
+--------------------------------------------------------------
+

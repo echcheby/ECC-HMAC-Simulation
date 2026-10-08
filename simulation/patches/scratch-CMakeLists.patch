@@ -1,0 +1,16 @@
+diff --git a/scratch/CMakeLists.txt b/scratch/CMakeLists.txt
+index 7d05f6022..f3ec471d7 100644
+--- a/scratch/CMakeLists.txt
++++ b/scratch/CMakeLists.txt
+@@ -89,3 +89,11 @@ foreach(subdir ${scratch_subdirectories})
+     create_scratch("${scratch_sources}")
+   endif()
+ endforeach()
++
++# ECC-HMAC-IoT: link OpenSSL (real P-256 / SHA-256 / HMAC) into our scratch targets
++find_package(OpenSSL REQUIRED)
++foreach(ecc_target scratch_ecc-hmac-revised scratch_ecc-hmac-tests)
++  if(TARGET ${ecc_target})
++    target_link_libraries(${ecc_target} OpenSSL::SSL OpenSSL::Crypto)
++  endif()
++endforeach()

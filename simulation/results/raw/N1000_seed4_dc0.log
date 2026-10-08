@@ -1,0 +1,1 @@
+[ecc-hmac-revised] N=1000 seed=4 successRate=94.6% meanLatency=4573.59ms desync=0 regFail=0 authFail=0 macDrops=210 messageSizesOk=1

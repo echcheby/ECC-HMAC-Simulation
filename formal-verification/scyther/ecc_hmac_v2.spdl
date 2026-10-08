@@ -1,0 +1,78 @@
+/* ECC-HMAC revised authentication phase - Scyther model
+   g(x) = x.P ; h(X, y) = y.X ; k(S,T) = chaining key SK
+   Abstractions: ist modelled as fresh nonce (real protocol uses a predictable
+   counter); SK modelled as static k(S,T) (no key evolution, no forward secrecy
+   in Scyther - see ProVerif); registration phase not modelled. */
+
+hashfunction g, h, H1, H2, H3, MAC;
+
+protocol @oracle(DH, SWAP1, SWAP2, SWAP3, SWAPM) {
+  role DH {
+    var rs, rt: Nonce;
+    recv_!DH1(DH, DH, h(g(rt), rs));
+    send_!DH2(DH, DH, h(g(rs), rt));
+  }
+  role SWAP1 {
+    var rs, rt, ist: Nonce; var S, T: Agent;
+    recv_!SW11(SWAP1, SWAP1, H1(k(S,T), h(g(rt), rs), ist, g(rs), g(rt)));
+    send_!SW12(SWAP1, SWAP1, H1(k(S,T), h(g(rs), rt), ist, g(rs), g(rt)));
+  }
+  role SWAP2 {
+    var rs, rt, ist: Nonce; var S, T: Agent;
+    recv_!SW21(SWAP2, SWAP2, H2(k(S,T), h(g(rt), rs), ist, g(rs), g(rt)));
+    send_!SW22(SWAP2, SWAP2, H2(k(S,T), h(g(rs), rt), ist, g(rs), g(rt)));
+  }
+  role SWAP3 {
+    var rs, rt, ist: Nonce; var S, T: Agent;
+    recv_!SW31(SWAP3, SWAP3, H3(k(S,T), h(g(rt), rs), ist, g(rs), g(rt)));
+    send_!SW32(SWAP3, SWAP3, H3(k(S,T), h(g(rs), rt), ist, g(rs), g(rt)));
+  }
+  role SWAPM {
+    var rs, rt, ist: Nonce; var S, T: Agent;
+    recv_!SWM1(SWAPM, SWAPM, MAC(H2(k(S,T), h(g(rs), rt), ist, g(rs), g(rt)), ist, g(rs), g(rt)));
+    send_!SWM2(SWAPM, SWAPM, MAC(H2(k(S,T), h(g(rt), rs), ist, g(rs), g(rt)), ist, g(rs), g(rt)));
+  }
+}
+
+protocol ecchmac(S, T) {
+  role S {
+    fresh rS, ist: Nonce;
+    var RT: Ticket;
+
+    claim(S, Running, T, ist, g(rS));
+
+    send_1(S, T, ist, g(rS), MAC(k(S,T), ist, g(rS)),
+           { ist, g(rS), MAC(k(S,T), ist, g(rS)) }sk(S));
+
+    recv_!2(T, S, RT, MAC(H2(k(S,T), h(RT, rS), ist, g(rS), RT), ist, g(rS), RT));
+
+    claim(S, Commit, T, ist, g(rS), RT);
+    claim(S, Alive);
+    claim(S, Weakagree);
+    claim(S, Niagree);
+    claim(S, Nisynch);
+    claim(S, SKR, H3(k(S,T), h(RT, rS), ist, g(rS), RT));
+    claim(S, Secret, H1(k(S,T), h(RT, rS), ist, g(rS), RT));
+  }
+
+  role T {
+    fresh rT: Nonce;
+    var ist: Nonce;
+    var RS: Ticket;
+
+    recv_1(S, T, ist, RS, MAC(k(S,T), ist, RS),
+           { ist, RS, MAC(k(S,T), ist, RS) }sk(S));
+
+    claim(T, Commit, S, ist, RS);
+    claim(T, Running, S, ist, RS, g(rT));
+
+    send_!2(T, S, g(rT), MAC(H2(k(S,T), h(RS, rT), ist, RS, g(rT)), ist, RS, g(rT)));
+
+    claim(T, Alive);
+    claim(T, Weakagree);
+    claim(T, Niagree);
+    claim(T, Nisynch);
+    claim(T, SKR, H3(k(S,T), h(RS, rT), ist, RS, g(rT)));
+    claim(T, Secret, H1(k(S,T), h(RS, rT), ist, RS, g(rT)));
+  }
+}

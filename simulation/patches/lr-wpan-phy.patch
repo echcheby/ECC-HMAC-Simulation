@@ -1,0 +1,30 @@
+diff --git a/src/lr-wpan/model/lr-wpan-phy.cc b/src/lr-wpan/model/lr-wpan-phy.cc
+index 6362c1cf0..fe4082b6b 100644
+--- a/src/lr-wpan/model/lr-wpan-phy.cc
++++ b/src/lr-wpan/model/lr-wpan-phy.cc
+@@ -813,10 +813,22 @@ LrWpanPhy::PlmeSetTRXStateRequest(LrWpanPhyEnumeration state)
+     {
+         CancelEd(state);
+ 
+-        if ((m_trxState == IEEE_802_15_4_PHY_BUSY_RX) && (m_currentRxPacket.first) &&
+-            (!m_currentRxPacket.second))
++        if (m_trxState == IEEE_802_15_4_PHY_BUSY_RX)
+         {
+-            NS_LOG_DEBUG("Receiver has valid SFD; defer state change");
++            // Defer regardless of the exact m_currentRxPacket bookkeeping
++            // state (valid-SFD tracking): the original condition here only
++            // covered "actively receiving a packet with a valid SFD", and
++            // fell through to NS_FATAL_ERROR ("Unexpected transition ...")
++            // for any other BUSY_RX case -- e.g. overhearing a frame not
++            // addressed to this node, which is exactly the situation many
++            // simultaneously-listening nodes in a shared PAN hit under
++            // load. Deferring (same mechanism already used for BUSY_TX and
++            // the valid-SFD BUSY_RX case just above) is safe: the pending
++            // state is applied once the PHY leaves BUSY_RX, and a later
++            // PlmeSetTRXStateRequest simply overwrites m_trxStatePending,
++            // so a stale deferred TRX_OFF can never override a more recent
++            // RX_ON/TX_ON request.
++            NS_LOG_DEBUG("Receiver busy; defer state change");
+             m_trxStatePending = state;
+             return; // Send PlmeSetTRXStateConfirm later
+         }
